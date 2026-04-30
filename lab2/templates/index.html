@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Стоматологічний кабінет (Lab 1)</title>
+    <meta charset="utf-8">
+</head>
+<body>
+    <h1>Стоматологічний кабінет (Lab 1)</h1>
+    <p>Роль: <b>{{ role }}</b> | <a href="/?role=admin">Увійти як Адміністратор</a> | <a href="/?role=user">Увійти як Користувач</a></p>
+    
+    <h2>Список пацієнтів</h2>
+    <ul>
+    {% for p in patients %}
+        <li>
+            {{ p.name }} (Телефон: {{ p.phone }})
+            {% if role == 'admin' %}
+            <form action="/patient/delete/{{ p.id }}" method="post" style="display:inline">
+                <button type="submit" style="color:red; margin-left:10px;">Видалити</button>
+            </form>
+            {% endif %}
+        </li>
+    {% else %}
+        <li>Пацієнтів ще немає</li>
+    {% endfor %}
+    </ul>
+
+    {% if role == 'admin' %}
+    <h3>Додати нового пацієнта</h3>
+    {% if error %}
+        <p style="color:red; font-weight:bold;">{{ error }}</p>
+    {% endif %}
+    <form action="/patient/add" method="post">
+        ПІБ: <input name="name" type="text" pattern="[^\d]+" title="ПІБ не може містити цифри" required>
+        Телефон: <input name="phone" type="tel" pattern="\+\d{10,15}" title="Формат: +380XXXXXXXXX" placeholder="+380..." required>
+        <button type="submit">Додати</button>
+    </form>
+    {% endif %}
+</body>
+</html>

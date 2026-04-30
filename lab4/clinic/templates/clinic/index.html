@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Стоматологічний кабінет (Lab 4)</title>
+    <meta charset="utf-8">
+</head>
+<body style="font-family: Arial, sans-serif; padding: 20px;">
+    <h1>Стоматологічний кабінет (ЛБ 4 — Django Base)</h1>
+    
+    <div style="background: #f0f0f0; padding: 10px; border-radius: 5px;">
+        {% if user.is_authenticated %}
+            {% if user.is_superuser %}
+                <p>Роль: <b>Адміністратор</b> ({{ user.username }})</p>
+                <a href="/admin/clinic/" style="padding: 10px; background: blue; color: white; text-decoration: none; border-radius: 3px;">➤ Перейти в Адмін-панель для Додавання/Видалення/Зміни</a>
+            {% else %}
+                <p>Роль: Користувач системи ({{ user.username }})</p>
+            {% endif %}
+            <br><p><a href="/admin/logout/?next=/">Вийти</a></p>
+        {% else %}
+            <p>Роль: <b>Гість (Користувач)</b>. Ви можете тільки переглядати наявний розклад.</p>
+            <a href="/admin/" style="padding: 10px; background: green; color: white; text-decoration: none; border-radius: 3px;">Увійти як Адміністратор</a>
+        {% endif %}
+    </div>
+
+    <h2>Розклад прийомів:</h2>
+    <ul>
+    {% for appt in appointments %}
+        <li>
+            <b>{{ appt.time|date:"d.m.Y H:i" }}</b>: 
+            Лікар <i>{{ appt.doctor.name }}</i> приймає пацієнта <i>{{ appt.patient.name }}</i>.
+        </li>
+    {% empty %}
+        <li>Записів ще немає.</li>
+    {% endfor %}
+    </ul>
+</body>
+</html>

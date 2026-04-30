@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Стоматологічний кабінет (Lab 5)</title>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .panel { background: #f0f0f0; padding: 10px; border-radius: 5px; margin-bottom: 20px; }
+        .errorlist { color: red; font-weight: bold; list-style-type: none; padding: 0; }
+        .form-control { margin-bottom: 10px; padding: 5px; width: 250px; }
+        button { padding: 8px 15px; background: green; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: darkgreen; }
+    </style>
+</head>
+<body>
+    <h1>Стоматологічний кабінет (ЛБ 5 — Django Forms & Validation)</h1>
+    
+    <div class="panel">
+        {% if user.is_authenticated %}
+            {% if user.is_superuser %}
+                <p>Роль: <b>Адміністратор</b> ({{ user.username }})</p>
+                <a href="/admin/clinic/" style="padding: 10px; background: blue; color: white; text-decoration: none; border-radius: 3px;">➤ Перейти в Адмін-панель (Структура/Лікарі/Записи)</a>
+            {% elif is_doctor %}
+                <p>Роль: <b>Лікар</b> ({{ user.doctor.name }})</p>
+            {% else %}
+                <p>Роль: Користувач системи ({{ user.username }})</p>
+            {% endif %}
+            <br><p><a href="{% url 'logout' %}">Вийти</a></p>
+        {% else %}
+            <p>Роль: <b>Гість</b>. Ви можете тільки переглядати розклад та реєструвати пацієнтів.</p>
+            <a href="{% url 'login' %}" style="padding: 10px; background: blue; color: white; text-decoration: none; border-radius: 3px;">Увійти (Лікар / Адміністратор)</a>
+        {% endif %}
+    </div>
+
+    <div style="display: flex; gap: 40px; flex-wrap: wrap;">
+        <div>
+            <h2>Додати нового пацієнта</h2>
+            <form method="POST" class="panel" style="background: #e8f4f8;">
+                {% csrf_token %}
+                <input type="hidden" name="patient_submit" value="1">
+                {{ form.non_field_errors }}
+                {% for field in form %}
+                    <div>
+                        {{ field.label_tag }}<br>
+                        {{ field }}
+                        {{ field.errors }}
+                    </div>
+                {% endfor %}
+                <br>
+                <button type="submit">Додати пацієнта</button>
+            </form>
+
+            <h2>Записатися на прийом</h2>
+            <form method="POST" class="panel" style="background: #fff0f0;">
+                {% csrf_token %}
+                <input type="hidden" name="appointment_submit" value="1">
+                {{ a_form.non_field_errors }}
+                {% for field in a_form %}
+                    <div>
+                        {{ field.label_tag }}<br>
+                        {{ field }}
+                        {{ field.errors }}
+                    </div>
+                {% endfor %}
+                <br>
+                <button type="submit">Створити запис</button>
+            </form>
+
+            <h3>Список пацієнтів бази:</h3>
+            <ul>
+            {% for p in patients %}
+                <li>{{ p.name }} ({{ p.phone }})</li>
+            {% empty %}
+                <li>Пацієнтів немає.</li>
+            {% endfor %}
+            </ul>
+        </div>
+
+        <div>
+            <h2>Розклад прийомів:</h2>
+            <ul>
+            {% for appt in appointments %}
+                <li style="margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 10px;">
+                    <b>{{ appt.time|date:"d.m.Y H:i" }}</b><br> 
+                    {% if appt.doctor %}Лікар <i>{{ appt.doctor.name }}</i>{% else %}<i>Без лікаря</i>{% endif %} приймає пацієнта <i>{{ appt.patient.name }}</i>.<br>
+                    Статус: <b>{{ appt.get_status_display }}</b>
+                    {% if appt.status == 'pending' and user.is_authenticated %}
+                        {% if user.is_superuser or is_doctor %}
+                            <form action="{% url 'confirm_appointment' appt.id %}" method="POST" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" style="background: orange; padding: 5px;">Взяти / Підтвердити</button>
+                            </form>
+                        {% endif %}
+                    {% endif %}
+                </li>
+            {% empty %}
+                <li>Записів ще немає.</li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
