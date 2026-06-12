@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h2>Реєстрація користувача</h2>
+    <form method="post">
+        {% for field in form %}
+            {% if field.type != 'CSRFTokenField' and field.type != 'SubmitField' %}
+                <label>{{ field.label.text }}</label>
+                {{ field }}
+                <div class="errors">{{ field.errors|join(', ') }}</div>
+            {% endif %}
+        {% endfor %}
+        {{ form.submit }}
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="grid">
+    <div class="card">
+        <h2>{{ "Призначити візит" if current_user.is_admin else "Записатися на візит" }}</h2>
+        <form method="post">
+            {% for field in form %}
+                {% if field.type != 'CSRFTokenField' and field.type != 'SubmitField' %}
+                    <label>{{ field.label.text }}</label>
+                    {{ field }}
+                    <div class="errors">{{ field.errors|join(', ') }}</div>
+                {% endif %}
+            {% endfor %}
+            {{ form.submit }}
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>Мої дані</h2>
+        <ul>
+            {% for patient in patients %}
+                <li>{{ patient.name }} ({{ patient.phone }})</li>
+            {% else %}
+                <li>Профіль пацієнта не створено.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>Лікарі та послуги</h2>
+        <ul>
+            {% for doctor in doctors %}
+                <li>{{ doctor.name }} - {{ doctor.specialty }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<div class="card">
+    <h2>{{ "Усі візити" if current_user.is_admin else "Мої візити" }}</h2>
+    <table>
+        <tr>
+            <th>Час</th>
+            <th>Пацієнт</th>
+            <th>Лікар</th>
+            <th>Статус</th>
+        </tr>
+        {% for appointment in appointments %}
+        <tr>
+            <td>{{ appointment.time.strftime('%d.%m.%Y %H:%M') }}</td>
+            <td>{{ appointment.patient.name }}</td>
+            <td>{{ appointment.doctor.name }}</td>
+            <td>{{ appointment.status }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4">Візитів немає.</td></tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

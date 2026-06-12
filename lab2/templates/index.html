@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Стоматологічний кабінет (Lab 1)</title>
+    <title>Стоматологічний кабінет (Lab 2)</title>
     <meta charset="utf-8">
 </head>
 <body>
-    <h1>Стоматологічний кабінет (Lab 1)</h1>
+    <h1>Стоматологічний кабінет (Lab 2)</h1>
     <p>Роль: <b>{{ role }}</b> | <a href="/?role=admin">Увійти як Адміністратор</a> | <a href="/?role=user">Увійти як Користувач</a></p>
     
     <h2>Список пацієнтів</h2>
@@ -14,6 +14,11 @@
         <li>
             {{ p.name }} (Телефон: {{ p.phone }})
             {% if role == 'admin' %}
+            <form action="/patient/update/{{ p.id }}" method="post" style="display:inline; margin-left:10px;">
+                <input name="name" type="text" value="{{ p.name }}" pattern="[^\d]+" required>
+                <input name="phone" type="tel" value="{{ p.phone }}" pattern="\+\d{10,15}" required>
+                <button type="submit">Update</button>
+            </form>
             <form action="/patient/delete/{{ p.id }}" method="post" style="display:inline">
                 <button type="submit" style="color:red; margin-left:10px;">Видалити</button>
             </form>

@@ -14,6 +14,11 @@
         <li>
             {{ p.name }} (Телефон: {{ p.phone }})
             {% if role == 'admin' %}
+            <form action="/patient/update/{{ p.id }}" method="post" style="display:inline; margin-left:10px;">
+                <input name="name" type="text" value="{{ p.name }}" pattern="[^\d]+" required>
+                <input name="phone" type="tel" value="{{ p.phone }}" pattern="\+\d{10,15}" required>
+                <button type="submit">Update</button>
+            </form>
             <form action="/patient/delete/{{ p.id }}" method="post" style="display:inline">
                 <button type="submit" style="color:red; margin-left:10px;">Видалити</button>
             </form>

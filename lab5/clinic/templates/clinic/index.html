@@ -1,102 +1,151 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Стоматологічний кабінет (Lab 5)</title>
+    <title>Стоматологічний кабінет (ЛР 5)</title>
     <meta charset="utf-8">
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .panel { background: #f0f0f0; padding: 10px; border-radius: 5px; margin-bottom: 20px; }
-        .errorlist { color: red; font-weight: bold; list-style-type: none; padding: 0; }
-        .form-control { margin-bottom: 10px; padding: 5px; width: 250px; }
-        button { padding: 8px 15px; background: green; color: white; border: none; border-radius: 3px; cursor: pointer; }
-        button:hover { background: darkgreen; }
+        body { font-family: Arial, sans-serif; padding: 20px; background: #fafafa; color: #222; }
+        .panel { background: #f0f0f0; padding: 12px; border-radius: 5px; margin-bottom: 20px; }
+        .grid { display: flex; gap: 32px; flex-wrap: wrap; align-items: flex-start; }
+        .card { background: white; border: 1px solid #ddd; padding: 14px; border-radius: 5px; min-width: 300px; }
+        .errorlist { color: #b00020; font-weight: bold; list-style-type: none; padding: 0; }
+        .form-control, select { margin-bottom: 10px; padding: 6px; width: 260px; box-sizing: border-box; }
+        button, .button { display: inline-block; padding: 8px 12px; background: #2866a8; color: white; border: 0; border-radius: 3px; cursor: pointer; text-decoration: none; margin: 3px 3px 3px 0; }
+        .button.admin { background: #9a5a00; }
+        .button.doctor { background: #2d7d46; }
+        .button.logout { background: #777; }
+        button { background: #2d7d46; }
+        table { border-collapse: collapse; width: 100%; background: white; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background: #f5f5f5; }
     </style>
 </head>
 <body>
-    <h1>Стоматологічний кабінет (ЛБ 5 — Django Forms & Validation)</h1>
-    
+    <h1>Стоматологічний кабінет (ЛР 5 - Django Models & Forms)</h1>
+
     <div class="panel">
         {% if user.is_authenticated %}
             {% if user.is_superuser %}
                 <p>Роль: <b>Адміністратор</b> ({{ user.username }})</p>
-                <a href="/admin/clinic/" style="padding: 10px; background: blue; color: white; text-decoration: none; border-radius: 3px;">➤ Перейти в Адмін-панель (Структура/Лікарі/Записи)</a>
+                <a class="button admin" href="/admin/clinic/">Django Admin</a>
             {% elif is_doctor %}
                 <p>Роль: <b>Лікар</b> ({{ user.doctor.name }})</p>
+            {% elif current_patient %}
+                <p>Роль: <b>Користувач</b> ({{ current_patient.name }})</p>
             {% else %}
-                <p>Роль: Користувач системи ({{ user.username }})</p>
+                <p>Роль: <b>Користувач без профілю пацієнта</b> ({{ user.username }})</p>
             {% endif %}
-            <br><p><a href="{% url 'logout' %}">Вийти</a></p>
+            <a class="button logout" href="{% url 'logout' %}">Вийти</a>
         {% else %}
-            <p>Роль: <b>Гість</b>. Ви можете тільки переглядати розклад та реєструвати пацієнтів.</p>
-            <a href="{% url 'login' %}" style="padding: 10px; background: blue; color: white; text-decoration: none; border-radius: 3px;">Увійти (Лікар / Адміністратор)</a>
+            <p>Роль: <b>Гість</b>. Увійдіть під потрібною роллю.</p>
         {% endif %}
+
+        <h3>Швидкий вхід</h3>
+        <a class="button admin" href="{% url 'demo_login' 'admin' %}">Увійти як Адміністратор</a>
+        <a class="button doctor" href="{% url 'demo_login' 'doctor' %}">Увійти як Лікар</a>
+        <a class="button" href="{% url 'demo_login' 'patient' %}">Увійти як Петренко Олена</a>
+        <a class="button" href="{% url 'demo_login' 'patient2' %}">Увійти як Шевченко Андрій</a>
+        <a class="button" href="{% url 'login' %}">Звичайний вхід</a>
     </div>
 
-    <div style="display: flex; gap: 40px; flex-wrap: wrap;">
-        <div>
-            <h2>Додати нового пацієнта</h2>
-            <form method="POST" class="panel" style="background: #e8f4f8;">
-                {% csrf_token %}
-                <input type="hidden" name="patient_submit" value="1">
-                {{ form.non_field_errors }}
-                {% for field in form %}
-                    <div>
-                        {{ field.label_tag }}<br>
-                        {{ field }}
-                        {{ field.errors }}
-                    </div>
-                {% endfor %}
-                <br>
-                <button type="submit">Додати пацієнта</button>
-            </form>
+    <div class="grid">
+        {% if is_admin %}
+            <div class="card">
+                <h2>Додати пацієнта</h2>
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="patient_submit" value="1">
+                    {{ patient_form.non_field_errors }}
+                    {% for field in patient_form %}
+                        <div>
+                            {{ field.label_tag }}<br>
+                            {{ field }}
+                            {{ field.errors }}
+                        </div>
+                    {% endfor %}
+                    <button type="submit">Додати пацієнта</button>
+                </form>
+            </div>
 
-            <h2>Записатися на прийом</h2>
-            <form method="POST" class="panel" style="background: #fff0f0;">
-                {% csrf_token %}
-                <input type="hidden" name="appointment_submit" value="1">
-                {{ a_form.non_field_errors }}
-                {% for field in a_form %}
-                    <div>
-                        {{ field.label_tag }}<br>
-                        {{ field }}
-                        {{ field.errors }}
-                    </div>
-                {% endfor %}
-                <br>
-                <button type="submit">Створити запис</button>
-            </form>
+            <div class="card">
+                <h2>Призначити візит</h2>
+                <p>Адміністратор може обрати будь-якого пацієнта і будь-якого вільного лікаря.</p>
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="admin_appointment_submit" value="1">
+                    {{ admin_appointment_form.non_field_errors }}
+                    {% for field in admin_appointment_form %}
+                        <div>
+                            {{ field.label_tag }}<br>
+                            {{ field }}
+                            {{ field.errors }}
+                        </div>
+                    {% endfor %}
+                    <button type="submit">Призначити візит</button>
+                </form>
+            </div>
+        {% elif current_patient %}
+            <div class="card">
+                <h2>Записатися на візит</h2>
+                <p>Користувач створює візит тільки для себе і тільки до вільного лікаря.</p>
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="user_appointment_submit" value="1">
+                    {{ user_appointment_form.non_field_errors }}
+                    {% for field in user_appointment_form %}
+                        <div>
+                            {{ field.label_tag }}<br>
+                            {{ field }}
+                            {{ field.errors }}
+                        </div>
+                    {% endfor %}
+                    <button type="submit">Записатися</button>
+                </form>
+            </div>
+        {% endif %}
 
-            <h3>Список пацієнтів бази:</h3>
+        <div class="card" style="flex: 1;">
+            <h2>Пацієнти</h2>
             <ul>
-            {% for p in patients %}
-                <li>{{ p.name }} ({{ p.phone }})</li>
+            {% for patient in patients %}
+                <li>{{ patient.name }} ({{ patient.phone }})</li>
             {% empty %}
                 <li>Пацієнтів немає.</li>
             {% endfor %}
             </ul>
-        </div>
 
-        <div>
-            <h2>Розклад прийомів:</h2>
-            <ul>
-            {% for appt in appointments %}
-                <li style="margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 10px;">
-                    <b>{{ appt.time|date:"d.m.Y H:i" }}</b><br> 
-                    {% if appt.doctor %}Лікар <i>{{ appt.doctor.name }}</i>{% else %}<i>Без лікаря</i>{% endif %} приймає пацієнта <i>{{ appt.patient.name }}</i>.<br>
-                    Статус: <b>{{ appt.get_status_display }}</b>
-                    {% if appt.status == 'pending' and user.is_authenticated %}
-                        {% if user.is_superuser or is_doctor %}
-                            <form action="{% url 'confirm_appointment' appt.id %}" method="POST" style="display:inline;">
-                                {% csrf_token %}
-                                <button type="submit" style="background: orange; padding: 5px;">Взяти / Підтвердити</button>
-                            </form>
+            <h2>Розклад візитів</h2>
+            <table>
+                <tr>
+                    <th>Час</th>
+                    <th>Пацієнт</th>
+                    <th>Лікар</th>
+                    <th>Статус</th>
+                    <th>Дія</th>
+                </tr>
+                {% for appt in appointments %}
+                <tr>
+                    <td>{{ appt.time|date:"d.m.Y H:i" }}</td>
+                    <td>{{ appt.patient.name }}</td>
+                    <td>{% if appt.doctor %}{{ appt.doctor.name }}{% else %}Без лікаря{% endif %}</td>
+                    <td>{{ appt.get_status_display }}</td>
+                    <td>
+                        {% if appt.status == 'pending' and user.is_authenticated %}
+                            {% if user.is_superuser or is_doctor %}
+                                <form action="{% url 'confirm_appointment' appt.id %}" method="POST">
+                                    {% csrf_token %}
+                                    <button type="submit">Підтвердити</button>
+                                </form>
+                            {% endif %}
                         {% endif %}
-                    {% endif %}
-                </li>
-            {% empty %}
-                <li>Записів ще немає.</li>
-            {% endfor %}
-            </ul>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">Записів немає.</td>
+                </tr>
+                {% endfor %}
+            </table>
         </div>
     </div>
 </body>

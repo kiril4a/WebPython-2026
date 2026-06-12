@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Стоматологічний кабінет - ЛР6 Flask</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 24px; background: #f7f7f7; color: #222; }
+        .panel, .card { background: white; border: 1px solid #ddd; border-radius: 6px; padding: 14px; margin-bottom: 16px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+        .button, button { display: inline-block; padding: 8px 12px; margin: 3px; border: 0; border-radius: 4px; background: #2468a8; color: white; text-decoration: none; cursor: pointer; }
+        .danger { background: #a83232; }
+        .admin { background: #8a5a00; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background: #eeeeee; }
+        ul { padding-left: 18px; }
+    </style>
+</head>
+<body>
+    <h1>Стоматологічний кабінет (ЛР6 - Flask)</h1>
+
+    <div class="panel">
+        {% if user %}
+            <p>Поточний користувач: <b>{{ user.username }}</b>, роль: <b>{{ "Адміністратор" if user.role == "admin" else "Користувач" }}</b></p>
+            <a class="button" href="{{ url_for('logout') }}">Вийти</a>
+        {% else %}
+            <p>Поточний користувач: <b>гість</b></p>
+        {% endif %}
+
+        <h3>Швидкий вхід через сесію</h3>
+        <a class="button admin" href="{{ url_for('login', username='admin') }}">Увійти як Адміністратор</a>
+        <a class="button" href="{{ url_for('login', username='petrenko') }}">Увійти як Петренко Олена</a>
+        <a class="button" href="{{ url_for('login', username='shevchenko') }}">Увійти як Шевченко Андрій</a>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h2>Пацієнти</h2>
+            {% if is_admin %}
+                <a class="button" href="{{ url_for('create_patient') }}">Додати пацієнта</a>
+            {% endif %}
+            <ul>
+                {% for patient in patients %}
+                    <li>
+                        {{ patient.name }} ({{ patient.phone }})
+                        {% if is_admin %}
+                            <a class="button" href="{{ url_for('edit_patient', patient_id=patient.id) }}">Редагувати</a>
+                            <form action="{{ url_for('delete_patient', patient_id=patient.id) }}" method="post" style="display:inline;">
+                                <button class="danger" type="submit">Видалити</button>
+                            </form>
+                        {% endif %}
+                    </li>
+                {% else %}
+                    <li>Пацієнтів для перегляду немає.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>Лікарі</h2>
+            {% if is_admin %}
+                <a class="button" href="{{ url_for('create_doctor') }}">Додати лікаря</a>
+            {% endif %}
+            <ul>
+                {% for doctor in doctors %}
+                    <li>
+                        {{ doctor.name }} - {{ doctor.specialty }}
+                        {% if doctor.services %}
+                            <br>Послуги: {{ doctor.services|map(attribute='name')|join(', ') }}
+                        {% endif %}
+                        {% if is_admin %}
+                            <a class="button" href="{{ url_for('edit_doctor', doctor_id=doctor.id) }}">Редагувати</a>
+                            <form action="{{ url_for('delete_doctor', doctor_id=doctor.id) }}" method="post" style="display:inline;">
+                                <button class="danger" type="submit">Видалити</button>
+                            </form>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>Послуги</h2>
+            {% if is_admin %}
+                <a class="button" href="{{ url_for('create_service') }}">Додати послугу</a>
+            {% endif %}
+            <ul>
+                {% for service in services %}
+                    <li>
+                        {{ service.name }} - {{ service.price }} грн
+                        {% if is_admin %}
+                            <a class="button" href="{{ url_for('edit_service', service_id=service.id) }}">Редагувати</a>
+                            <form action="{{ url_for('delete_service', service_id=service.id) }}" method="post" style="display:inline;">
+                                <button class="danger" type="submit">Видалити</button>
+                            </form>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Візити</h2>
+        {% if user %}
+            <a class="button" href="{{ url_for('create_appointment') }}">
+                {{ "Призначити візит" if is_admin else "Записатися на візит" }}
+            </a>
+        {% endif %}
+        <table>
+            <tr>
+                <th>Час</th>
+                <th>Пацієнт</th>
+                <th>Лікар</th>
+                <th>Статус</th>
+                {% if is_admin %}<th>Дії</th>{% endif %}
+            </tr>
+            {% for appointment in appointments %}
+            <tr>
+                <td>{{ appointment.time.strftime('%d.%m.%Y %H:%M') }}</td>
+                <td>{{ appointment.patient.name }}</td>
+                <td>{{ appointment.doctor.name }}</td>
+                <td>{{ appointment.status }}</td>
+                {% if is_admin %}
+                    <td>
+                        <a class="button" href="{{ url_for('edit_appointment', appointment_id=appointment.id) }}">Редагувати</a>
+                        <form action="{{ url_for('delete_appointment', appointment_id=appointment.id) }}" method="post" style="display:inline;">
+                            <button class="danger" type="submit">Видалити</button>
+                        </form>
+                    </td>
+                {% endif %}
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="{{ 5 if is_admin else 4 }}">Візитів немає.</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</body>
+</html>

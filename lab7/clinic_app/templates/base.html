@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title or "Стоматологічний кабінет - ЛР7" }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 24px; background: #f7f7f7; color: #222; }
+        .panel, .card { background: white; border: 1px solid #ddd; border-radius: 6px; padding: 14px; margin-bottom: 16px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+        .button, button, input[type="submit"] { display: inline-block; padding: 8px 12px; margin: 3px; border: 0; border-radius: 4px; background: #2468a8; color: white; text-decoration: none; cursor: pointer; }
+        .danger { background: #a83232; }
+        .admin { background: #8a5a00; }
+        .muted { color: #666; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background: #eeeeee; }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        input, select { width: 100%; max-width: 420px; padding: 8px; box-sizing: border-box; }
+        .errors, .flash { color: #b00020; }
+    </style>
+</head>
+<body>
+    <div class="panel">
+        <h1>Стоматологічний кабінет (ЛР7 - Flask)</h1>
+        {% if current_user.is_authenticated %}
+            <p>Користувач: <b>{{ current_user.username }}</b>, роль: <b>{{ "Адміністратор" if current_user.is_admin else "Користувач" }}</b></p>
+            <a class="button" href="{{ url_for('main.index') }}">Головна</a>
+            {% if current_user.is_admin %}
+                <a class="button admin" href="{{ url_for('admin.dashboard') }}">Панель адміністратора</a>
+                <a class="button" href="{{ url_for('mail.send_mail') }}">Надіслати лист</a>
+            {% endif %}
+            <a class="button danger" href="{{ url_for('auth.logout') }}">Вийти</a>
+        {% else %}
+            <a class="button" href="{{ url_for('auth.login') }}">Увійти</a>
+            <a class="button" href="{{ url_for('auth.register') }}">Реєстрація</a>
+        {% endif %}
+    </div>
+
+    {% for message in get_flashed_messages() %}
+        <div class="panel flash">{{ message }}</div>
+    {% endfor %}
+
+    {% block content %}{% endblock %}
+</body>
+</html>

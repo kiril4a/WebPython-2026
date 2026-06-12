@@ -4,12 +4,11 @@
     <title>Увійти</title>
     <meta charset="utf-8">
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .panel { background: #f0f0f0; padding: 20px; border-radius: 5px; max-width: 300px; margin: 0 auto; }
+        body { font-family: Arial, sans-serif; padding: 20px; background: #fafafa; }
+        .panel { background: #f0f0f0; padding: 20px; border-radius: 5px; max-width: 360px; margin: 0 auto; }
         .form-control { margin-bottom: 10px; width: 100%; padding: 8px; box-sizing: border-box; }
-        button { padding: 10px; background: blue; color: white; border: none; border-radius: 3px; cursor: pointer; width: 100%; }
-        button:hover { background: darkblue; }
-        .errorlist { color: red; list-style-type: none; padding: 0; }
+        button, .button { display: block; padding: 10px; background: #2866a8; color: white; border: none; border-radius: 3px; cursor: pointer; width: 100%; box-sizing: border-box; text-align: center; text-decoration: none; margin-bottom: 8px; }
+        .errorlist { color: #b00020; list-style-type: none; padding: 0; }
     </style>
 </head>
 <body>
@@ -27,7 +26,13 @@
             {% endfor %}
             <button type="submit">Увійти</button>
         </form>
-        <br>
+
+        <h3>Швидкий вхід</h3>
+        <a class="button" href="{% url 'demo_login' 'admin' %}">Увійти як Адміністратор</a>
+        <a class="button" href="{% url 'demo_login' 'doctor' %}">Увійти як Лікар</a>
+        <a class="button" href="{% url 'demo_login' 'patient' %}">Увійти як Петренко Олена</a>
+        <a class="button" href="{% url 'demo_login' 'patient2' %}">Увійти як Шевченко Андрій</a>
+
         <p align="center"><a href="{% url 'index' %}">Повернутися на головну</a></p>
     </div>
 </body>

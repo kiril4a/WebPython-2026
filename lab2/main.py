@@ -1,5 +1,4 @@
-
-from fastapi import FastAPI, Request, Form, Depends
+from fastapi import FastAPI, Request, Form, Depends, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, DateTime
@@ -32,7 +31,11 @@ class Appointment(Base):
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+app = FastAPI(
+    title="Dental Clinic API",
+    description="RESTful API web application for dental clinic patients",
+    version="1.0.0"
+)
 templates = Jinja2Templates(directory='templates')
 
 def get_db():
@@ -40,28 +43,38 @@ def get_db():
     try: yield db
     finally: db.close()
 
-@app.get('/', response_class=HTMLResponse)
+def validate_patient_data(name: str, phone: str):
+    if any(char.isdigit() for char in name):
+        return "PIB ne mozhe mistyty tsyfry."
+    if not re.match(r"^\+\d{10,15}$", phone):
+        return "Telefon maie pochynatysia z '+' i mistyty vid 10 do 15 tsyfr."
+    return None
+
+@app.get('/', response_class=HTMLResponse, summary="Read patients page")
 def read_root(request: Request, role: str = 'user', db: Session = Depends(get_db)):
     patients = db.query(Patient).all()
     return templates.TemplateResponse(
-        request=request, 
-        name='index.html', 
+        request=request,
+        name='index.html',
         context={'patients': patients, 'role': role}
     )
 
-@app.post('/patient/add')
+@app.get('/patient/{id}', summary="Read patient")
+def read_patient(id: int, db: Session = Depends(get_db)):
+    patient = db.query(Patient).filter(Patient.id == id).first()
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient not found")
+    return {"id": patient.id, "name": patient.name, "phone": patient.phone}
+
+@app.post('/patient/add', summary="Create patient")
 def add_patient(request: Request, name: str = Form(...), phone: str = Form(...), db: Session = Depends(get_db)):
-    error_msg = None
-    if any(char.isdigit() for char in name):
-        error_msg = "ПІБ не може містити цифри."
-    elif not re.match(r"^\+\d{10,15}$", phone):
-        error_msg = "Телефон має містити код країни (починатися з '+') і загалом від 10 до 15 цифр."
+    error_msg = validate_patient_data(name, phone)
 
     if error_msg:
         patients = db.query(Patient).all()
         return templates.TemplateResponse(
-            request=request, 
-            name='index.html', 
+            request=request,
+            name='index.html',
             context={'patients': patients, 'role': 'admin', 'error': error_msg}
         )
 
@@ -69,7 +82,27 @@ def add_patient(request: Request, name: str = Form(...), phone: str = Form(...),
     db.commit()
     return RedirectResponse(url='/?role=admin', status_code=303)
 
-@app.post('/patient/delete/{id}')
+@app.post('/patient/update/{id}', summary="Update patient")
+def update_patient(id: int, request: Request, name: str = Form(...), phone: str = Form(...), db: Session = Depends(get_db)):
+    patient = db.query(Patient).filter(Patient.id == id).first()
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient not found")
+
+    error_msg = validate_patient_data(name, phone)
+    if error_msg:
+        patients = db.query(Patient).all()
+        return templates.TemplateResponse(
+            request=request,
+            name='index.html',
+            context={'patients': patients, 'role': 'admin', 'error': error_msg}
+        )
+
+    patient.name = name
+    patient.phone = phone
+    db.commit()
+    return RedirectResponse(url='/?role=admin', status_code=303)
+
+@app.post('/patient/delete/{id}', summary="Delete patient")
 def delete_patient(id: int, db: Session = Depends(get_db)):
     p = db.query(Patient).filter(Patient.id == id).first()
     if p: db.delete(p); db.commit()

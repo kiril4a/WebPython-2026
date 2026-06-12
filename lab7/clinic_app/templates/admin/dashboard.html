@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="grid">
+    <div class="card">
+        <h2>Акаунти користувачів</h2>
+        <table>
+            <tr><th>Логін</th><th>Email</th><th>Роль</th><th>Дії</th></tr>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.role }}</td>
+                <td>
+                    <a class="button" href="{{ url_for('admin.edit_user', user_id=user.id) }}">Редагувати</a>
+                    <form action="{{ url_for('admin.delete_user', user_id=user.id) }}" method="post" style="display:inline;">
+                        <button class="danger" type="submit">Видалити</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>Пацієнти</h2>
+        <a class="button" href="{{ url_for('admin.create_patient') }}">Додати пацієнта</a>
+        <ul>
+            {% for patient in patients %}
+                <li>{{ patient.name }} ({{ patient.phone }})
+                    <a class="button" href="{{ url_for('admin.edit_patient', patient_id=patient.id) }}">Редагувати</a>
+                    <form action="{{ url_for('admin.delete_patient', patient_id=patient.id) }}" method="post" style="display:inline;">
+                        <button class="danger" type="submit">Видалити</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>Лікарі</h2>
+        <a class="button" href="{{ url_for('admin.create_doctor') }}">Додати лікаря</a>
+        <ul>
+            {% for doctor in doctors %}
+                <li>{{ doctor.name }} - {{ doctor.specialty }}
+                    <a class="button" href="{{ url_for('admin.edit_doctor', doctor_id=doctor.id) }}">Редагувати</a>
+                    <form action="{{ url_for('admin.delete_doctor', doctor_id=doctor.id) }}" method="post" style="display:inline;">
+                        <button class="danger" type="submit">Видалити</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Візити</h2>
+    <a class="button" href="{{ url_for('admin.create_appointment') }}">Призначити візит</a>
+    <table>
+        <tr><th>Час</th><th>Пацієнт</th><th>Лікар</th><th>Дії</th></tr>
+        {% for appointment in appointments %}
+        <tr>
+            <td>{{ appointment.time.strftime('%d.%m.%Y %H:%M') }}</td>
+            <td>{{ appointment.patient.name }}</td>
+            <td>{{ appointment.doctor.name }}</td>
+            <td>
+                <a class="button" href="{{ url_for('admin.edit_appointment', appointment_id=appointment.id) }}">Редагувати</a>
+                <form action="{{ url_for('admin.delete_appointment', appointment_id=appointment.id) }}" method="post" style="display:inline;">
+                    <button class="danger" type="submit">Видалити</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

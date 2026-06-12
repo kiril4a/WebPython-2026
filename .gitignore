@@ -1,4 +1,6 @@
 /.venv
+/lab7/.env
+/lab7/instance/
 /all_labs.txt
 /labs.txt
 /read_pdf.py

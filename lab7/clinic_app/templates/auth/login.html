@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h2>Вхід у систему</h2>
+    <form method="post">
+        {% for field in form %}
+            {% if field.type != 'CSRFTokenField' and field.type != 'SubmitField' %}
+                <label>{{ field.label.text }}</label>
+                {{ field }}
+                <div class="errors">{{ field.errors|join(', ') }}</div>
+            {% endif %}
+        {% endfor %}
+        {{ form.submit }}
+    </form>
+
+    <h3>Швидкий вхід</h3>
+    <a class="button admin" href="{{ url_for('auth.demo_login', username='admin') }}">Адміністратор</a>
+    <a class="button" href="{{ url_for('auth.demo_login', username='petrenko') }}">Петренко Олена</a>
+    <a class="button" href="{{ url_for('auth.demo_login', username='shevchenko') }}">Шевченко Андрій</a>
+    <p class="muted">Паролі демо-користувачів: admin/admin, petrenko/1234, shevchenko/1234.</p>
+</div>
+{% endblock %}
